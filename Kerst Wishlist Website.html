@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wishlist Karol</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- świąteczna muzyka -->
+  <audio id="bg-music" loop>
+    <source src="kerst-muziek.mp3" type="audio/mpeg">
+  </audio>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      color: #fff;
+      background: linear-gradient(180deg, #1b315f, #3d6fb8, #8ec5fc);
+      overflow-x: hidden;
+    }
+
+    /* tło – jouw kerstfoto, wat zachter door overlay */
+    .background-image {
+      position: fixed;
+      inset: 0;
+      background-image: url('kerst-achtergrond.jpg');
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.55);
+      z-index: -3;
+    }
+
+    .background-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(255,255,255,0.35), transparent 55%);
+      z-index: -2;
+    }
+
+    /* śnieg */
+    .snowflake {
+      position: fixed;
+      top: -10px;
+      color: #fff;
+      font-size: 1em;
+      opacity: 0.9;
+      pointer-events: none;
+      animation: fall linear infinite;
+      z-index: 9999;
+    }
+    @keyframes fall {
+      0%   { transform: translateY(-10vh) rotate(0deg); }
+      100% { transform: translateY(110vh) rotate(360deg); }
+    }
+
+    /* header */
+    header {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px 80px;
+    }
+
+    header h1 {
+      font-size: clamp(2.8rem, 6vw, 4.5rem);
+      margin: 0 0 10px;
+      text-shadow: 0 0 20px #ff0000, 0 0 50px #ffd700;
+      animation: glow 3s ease-in-out infinite alternate;
+    }
+
+    header p {
+      font-size: 1.1rem;
+      max-width: 650px;
+      margin: 10px auto 0;
+      opacity: 0.95;
+    }
+
+    .hero-tag {
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-size: 0.9rem;
+      color: #ffe8e8;
+    }
+
+    @keyframes glow {
+      0%   { text-shadow: 0 0 10px #ff0000, 0 0 30px #ffd700; }
+      100% { text-shadow: 0 0 35px #ff0000, 0 0 80px #ffd700; }
+    }
+
+    /* nav – andere stijl */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(14px);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.4);
+    }
+    nav button {
+      background: transparent;
+      border: none;
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      position: relative;
+      transition: 0.2s;
+    }
+    nav button::after {
+      content: "";
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 0;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #ff0000, #ffd700);
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: 0.2s;
+    }
+    nav button:hover::after {
+      transform: scaleX(1);
+    }
+    nav button:hover {
+      transform: translateY(-1px);
+    }
+
+    /* sekcje */
+    section {
+      padding: 70px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    section h2 {
+      font-size: 2.4rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px rgba(255,255,255,0.5);
+    }
+    section p.section-intro {
+      max-width: 650px;
+      font-size: 1rem;
+      opacity: 0.95;
+      margin-bottom: 25px;
+    }
+
+    /* cards – licht, kerst */
+    .card {
+      background: rgba(255,255,255,0.9);
+      color: #222;
+      border-radius: 22px;
+      padding: 24px 22px;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.8);
+      backdrop-filter: blur(10px);
+    }
+
+    /* wishlist */
+    .wishlist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+    }
+    .wishlist-card {
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .wishlist-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(255,0,0,0.18), transparent 60%);
+      opacity: 0;
+      transition: 0.3s;
+    }
+    .wishlist-card:hover::before {
+      opacity: 1;
+    }
+    .wishlist-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+    }
+    .wishlist-title {
+      font-size: 1.4rem;
+      margin-bottom: 6px;
+    }
+    .wishlist-desc {
+      font-size: 0.96rem;
+      opacity: 0.95;
+    }
+
+    /* modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .modal {
+      background: #fefefe;
+      color: #222;
+      border-radius: 22px;
+      padding: 28px 22px 22px;
+      max-width: 480px;
+      width: 90%;
+      box-shadow: 0 0 40px rgba(0,0,0,0.8);
+      text-align: center;
+      animation: pop 0.35s ease-out;
+      border: 2px solid #ff4b4b;
+    }
+    @keyframes pop {
+      0%   { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+    .modal button {
+      padding: 8px 20px;
+      border-radius: 999px;
+      border: none;
+      background: #ff3b3b;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .modal button:hover { background: #ff6363; }
+
+    /* wiadomości */
+    .messages-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .message-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .message-card::before {
+      content: "★";
+      position: absolute;
+      font-size: 3rem;
+      color: rgba(255,215,0,0.16);
+      right: -8px;
+      top: -8px;
+      transform: rotate(20deg);
+    }
+    .message-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .message-text {
+      font-size: 0.95rem;
+    }
+
+    /* galeria */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .photo-frame {
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .photo-frame::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+      opacity: 0;
+      transition: 0.3s;
+    }
+    .photo-frame:hover::before { opacity: 1; }
+
+    /* muzyka */
+    .music-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      background: #ff3333;
+      color: #fff;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 0 14px rgba(255,215,0,0.8);
+      z-index: 1500;
+    }
+    .music-toggle:hover {
+      background: #ff6666;
+      transform: scale(1.05);
+    }
+    .music-hint {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: rgba(0,0,0,0.8);
+      border-radius: 16px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: 0.25s;
+      max-width: 220px;
+    }
+    .music-hint.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px 20px 30px;
+      font-size: 1.2rem;
+      margin-top: 40px;
+      background: rgba(0,0,0,0.3);
+    }
+
+    @media (max-width: 600px) {
+      nav { gap: 10px; }
+      nav button {
+        padding-inline: 14px;
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="background-image"></div>
+  <div class="background-overlay"></div>
+
+  <!-- śnieg -->
+  <script>
+    (function createSnow() {
+      const snowCount = 220;
+      for (let i = 0; i < snowCount; i++) {
+        const snow = document.createElement('div');
+        snow.className = 'snowflake';
+        snow.textContent = '❄';
+        snow.style.left = Math.random() * 100 + 'vw';
+        snow.style.fontSize = (Math.random() * 14 + 8) + 'px';
+        snow.style.animationDuration = (Math.random() * 6 + 3) + 's';
+        snow.style.animationDelay = (Math.random() * 5) + 's';
+        document.body.appendChild(snow);
+      }
+    })();
+  </script>
+
+  <!-- HEADER -->
+  <header id="top">
+    <div class="hero-tag"></div>
+    <h1>Wishlist Karol</h1>
+    <p>
+      Hej mamo, hej tato ❤️<br>
+      Zrobiłem tę stronę na święta.
+    </p>
+  </header>
+
+  <!-- NAV -->
+  <nav>
+    <button onclick="scrollToId('wishlist')">Lista</button>
+    <button onclick="scrollToId('messages')">Wiadomości</button>
+    <button onclick="scrollToId('gallery')">Galeria</button>
+    <button onclick="scrollToId('top')">Do góry</button>
+  </nav>
+
+  <!-- WISHLIST -->
+  <section id="wishlist">
+    <h2>🎁 Moja lista życzeń</h2>
+    <p class="section-intro">
+      Narazie tylko to, bo jeszcze myślę. A pieniądze są po prostu, żeby trochę
+      odkładać i spłacać / dokładać do brommobiel.
+    </p>
+
+    <div class="wishlist-grid">
+      <div class="card wishlist-card"
+           data-title="CarPlay do Ligier ixo 2016"
+           data-desc="CarPlay z kamerą cofania (i najlepiej opcją na przednią kamerę). W mojej Ligier ixo 2016 .">
+        <div class="wishlist-title">CarPlay z kamerą do Ligier ixo 2016</div>
+        <div class="wishlist-desc">
+          Ekran z CarPlay, do tego kamera cofania. i do pszodu.
+        </div>
+      </div>
+
+      <div class="card wishlist-card"
+           data-title="Pieniądze na później"
+           data-desc="Kasa, którą mogę odkładać i użyć np. na auto, albo inne rzeczy do brommobiel – zamiast jednego dużego prezentu.">
+        <div class="wishlist-title">Pieniądze</div>
+        <div class="wishlist-desc">
+          Po prostu, żeby trochę oszczędzać i móc dołożyć do Spłaty auta.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WIADOMOŚCI – nu lief & trots voor je ouders -->
+  <section id="messages">
+    <h2>💌 Kilka słów ode mnie</h2>
+    <p class="section-intro">
+      To jest ta część, która jest bardziej o Was niż o prezentach.  
+      Chciałem napisać kilka rzeczy prosto od siebie.
+    </p>
+
+    <div class="messages-grid">
+      <div class="card message-card">
+        <div class="message-title">Dziękuję, że mnie ogarniacie</div>
+        <div class="message-text">
+          Dziękuję za to, że zawsze mogę na Was liczyć – czy chodzi o szkołę, auto,
+          czy zwykłe codzienne rzeczy. Wiem, że dużo dla mnie robicie, nawet jak o tym nie gadamy.
+        </div>
+      </div>
+
+      <div class="card message-card">
+        <div class="message-title">Chcę, żebyście byli ze mnie dumni</div>
+        <div class="message-text">
+          Nie zawsze wszystko wychodzi idealnie, ale serio się staram ogarniać i robić rzeczy po swojemu,
+          tak żebyście mogli być ze mnie dumni – teraz i później.
+        </div>
+      </div>
+
+      <div class="card message-card">
+        <div class="message-title">Doceniam Was bardziej, niż mówię</div>
+        <div class="message-text">
+          Może nie zawsze to pokazuję, ale doceniam każdą pomoc, każde podwózki, każdą rozmowę
+          i to, że po prostu jesteście. Bez Was byłoby totalnie inaczej.
+        </div>
+      </div>
+
+      <div class="card message-card">
+        <div class="message-title">Święta z Wami</div>
+        <div class="message-text">
+          Fajnie mieć prezenty, ale najlepsze w świętach jest to, że jesteśmy razem –  
+          w domu, przy stole, przy głupich żartach i wspólnym jedzeniu.  
+          Mam nadzieję, że ta strona chociaż trochę Was uśmiechnie.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GALERIA -->
+  <section id="gallery">
+    <h2>📸 Miejsce na zdjęcia</h2>
+    <p class="section-intro">
+      Tutaj można później wrzucić nasze foty ze świąt albo zdjęcia auta po modach.
+      Na razie jest pusto, ale to może się zmienić.
+    </p>
+
+    <div class="gallery-grid">
+      <div class="card photo-frame">
+        Tutaj może być nasze wspólne zdjęcie z Wigilii.
+      </div>
+      <div class="card photo-frame">
+        Tutaj może być Ligier po montażu CarPlay i kamer.
+      </div>
+      <div class="card photo-frame">
+        A tutaj jakieś śmieszne foty z tego roku, które będziemy pamiętać.
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal">
+      <h3 id="modal-title"></h3>
+      <p id="modal-desc"></p>
+      <button onclick="closeModal()">Zamknij</button>
+    </div>
+  </div>
+
+  <!-- MUZYKA -->
+  <button class="music-toggle" id="music-toggle" onclick="toggleMusic()">
+    Muzyka 🎵
+  </button>
+  <div class="music-hint" id="music-hint">
+    Jeśli nie słychać muzyki, kliknij gdziekolwiek na stronie albo ten przycisk.
+  </div>
+
+  <footer>
+    Karol
+  </footer>
+
+  <script>
+    function scrollToId(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // modal
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const modalTitle = document.getElementById('modal-title');
+    const modalDesc  = document.getElementById('modal-desc');
+
+    document.querySelectorAll('.wishlist-card').forEach(card => {
+      card.addEventListener('click', () => {
+        modalTitle.textContent = card.dataset.title || '';
+        modalDesc.textContent  = card.dataset.desc  || '';
+        modalBackdrop.style.display = 'flex';
+      });
+    });
+
+    function closeModal() {
+      modalBackdrop.style.display = 'none';
+    }
+    modalBackdrop.addEventListener('click', e => {
+      if (e.target === modalBackdrop) closeModal();
+    });
+
+    // muzyka
+    const music     = document.getElementById('bg-music');
+    const musicBtn  = document.getElementById('music-toggle');
+    const musicHint = document.getElementById('music-hint');
+    let musicOn     = false;
+
+    function tryPlayMusic() {
+      if (!music) return;
+      music.volume = 0.4;
+      const p = music.play();
+      if (p !== undefined) {
+        p.then(() => {
+          musicOn = true;
+          musicBtn.textContent = 'Muzyka: ON 🎶';
+        }).catch(() => {
+          musicHint.classList.add('show');
+        });
+      }
+    }
+
+    function toggleMusic() {
+      if (!musicOn) {
+        music.play();
+        musicOn = true;
+        musicBtn.textContent = 'Muzyka: ON 🎶';
+        musicHint.classList.remove('show');
+      } else {
+        music.pause();
+        musicOn = false;
+        musicBtn.textContent = 'Muzyka 🎵';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      tryPlayMusic();
+    });
+
+    window.addEventListener('click', () => {
+      if (!musicOn) {
+        tryPlayMusic();
+      }
+    }, { once: true });
+  </script>
+</body>
+</html>
